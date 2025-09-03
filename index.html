@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Profile • Telegram Mini WebApp</title>
 
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js" integrity="sha512-6BTOlkauINO65nLhXhthZMtepgJSghyimIalb+crKRPhvhmsCdnIuGcVbR5/aQY2A+260iC1OPy1oCdB6pSSwQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js" integrity="sha512-6BTOlkauINO65nLhXhthZMtepgJSghyimIalb+crKRPhvhmsCdnIuGcVbR5/aQY2A+260iC1OPy1oCdB6pSSwQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <!-- =========================
        THEME & BASE STYLES
@@ -171,10 +169,6 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* Skeletons */
-    .skeleton { position: relative; overflow: hidden; background: linear-gradient(90deg, var(--bg-soft), rgba(255,255,255,0.05), var(--bg-soft)); background-size: 300% 100%; animation: sk 1.2s infinite linear; }
-    @keyframes sk { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
-
     /* Demo banner */
     .demo {
       background: var(--primary-weak);
@@ -192,8 +186,8 @@
     <!-- Topbar -->
     <div class="topbar">
       <div class="theme-switch">
-        <button id="themeToggle" class="btn small ghost" title="থিম পরিবর্তন করুন"> <i class="fa-solid fa-circle-moon"></i> Theme</button>
-        <button id="languageToggle" class="btn small ghost" title="Change language"> <i class="fa-solid fa-language"></i> বাংলা</button>
+        <button id="themeToggle" class="btn small ghost" title="থিম পরিবর্তন করুন"> <i class="fa-solid fa-moon"></i> Theme</button>
+        <button id="languageToggle" class="btn small ghost" title="Change language"> <i class="fa-solid fa-language"></i> <span id="languageText">বাংলা</span></button>
       </div>
     </div>
     
@@ -246,19 +240,19 @@
         <div class="stats">
           <div class="stat">
             <div class="label" data-i18n="balance">Balance</div>
-            <div id="balance" class="value skeleton" style="height:22px; border-radius:6px;">0.00</div>
+            <div id="balance" class="value">0.00</div>
           </div>
           <div class="stat">
             <div class="label" data-i18n="todayEarning">Today Earning</div>
-            <div id="todayEarning" class="value skeleton" style="height:22px; border-radius:6px;">0.00</div>
+            <div id="todayEarning" class="value">0.00</div>
           </div>
           <div class="stat">
             <div class="label" data-i18n="totalWithdraw">Total Withdraw</div>
-            <div id="totalWithdraw" class="value skeleton" style="height:22px; border-radius:6px;">0.00</div>
+            <div id="totalWithdraw" class="value">0.00</div>
           </div>
           <div class="stat">
             <div class="label" data-i18n="totalEarning">Total Earning</div>
-            <div id="totalEarning" class="value skeleton" style="height:22px; border-radius:6px;">0.00</div>
+            <div id="totalEarning" class="value">0.00</div>
           </div>
         </div>
       </div>
@@ -363,14 +357,21 @@
           el.textContent = translations[lang][key];
         }
       });
-      document.getElementById('languageToggle').textContent = lang === 'bn' ? '🌐 English' : '🌐 বাংলা';
+      document.getElementById('languageText').textContent = lang === 'bn' ? 'English' : 'বাংলা';
       document.getElementById('languageToggle').setAttribute('title', lang === 'bn' ? 'Change to English' : 'বাংলায় পরিবর্তন করুন');
       localStorage.setItem(LANG_KEY, lang);
     }
     
     // Apply theme
     function applyTheme(t){
-      if(t === 'light') root.classList.add('light'); else root.classList.remove('light');
+      const themeIcon = document.querySelector('#themeToggle i');
+      if (t === 'light') {
+        root.classList.add('light');
+        themeIcon.className = 'fa-solid fa-sun';
+      } else {
+        root.classList.remove('light');
+        themeIcon.className = 'fa-solid fa-moon';
+      }
       localStorage.setItem(THEME_KEY, t);
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor(t === 'light' ? '#ffffff' : '#0b0f14'); } catch {}
     }
@@ -423,19 +424,17 @@
     // Telegram user (real or mock for local testing)
     // ------------------------------
     function getTelegramUser(){
-      // Telegram WebApp initialization
-      if (window.Telegram && window.Telegram.WebApp) {
+      // Telegram WebApp initialization with safety check
+      if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
         try {
-          window.Telegram.WebApp.ready();
-          window.Telegram.WebApp.expand();
+          Telegram.WebApp.ready();
+          Telegram.WebApp.expand();
+          if (Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
+            return { source: 'telegram', user: Telegram.WebApp.initDataUnsafe.user };
+          }
         } catch (error) {
           console.log('Telegram WebApp initialization error:', error);
         }
-      }
-      
-      const tg = window.Telegram?.WebApp;
-      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        return { source: 'telegram', user: tg.initDataUnsafe.user };
       }
       
       // Mock (for local dev)
@@ -482,7 +481,6 @@
     function renderStats(stats){
       const setV = (id, v) => { 
         const el = $(id); 
-        el.classList.remove('skeleton'); 
         el.textContent = fmtMoney(v); 
       };
       setV('balance', stats.balance || 0);
@@ -530,20 +528,18 @@
     // ===== IMPORTANT: Add your Firebase project config here =====
     // 🔧 Replace the placeholders with your real values from Firebase Console
     const firebaseConfig = {
- apiKey: "AIzaSyCs6ePkTxvMjcERh6yAdvjPqxIu6X7jhRM",
-  authDomain: "fbm-market-bot.firebaseapp.com",
-  databaseURL: "https://fbm-market-bot-default-rtdb.firebaseio.com",
-  projectId: "fbm-market-bot",
-  storageBucket: "fbm-market-bot.firebasestorage.app",
-  messagingSenderId: "711610016805",
-  appId: "1:711610016805:web:c5a019c9af1485ac984bcc"
-      // OPTIONAL: If you also use Realtime DB
+      apiKey: "AIzaSyCs6ePkTxvMjcERh6yAdvjPqxIu6X7jhRM",
+      authDomain: "fbm-market-bot.firebaseapp.com",
+      projectId: "fbm-market-bot",
+      storageBucket: "fbm-market-bot.firebasestorage.app",
+      messagingSenderId: "711610016805",
+      appId: "1:711610016805:web:c5a019c9af1485ac984bcc",
       databaseURL: "https://fbm-market-bot-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
 
     // ===== Imports =====
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, orderBy, limit, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, query, orderBy, limit, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
 
     // ===== App Init =====
     const app = initializeApp(firebaseConfig);
@@ -671,6 +667,12 @@
       console.error('Firebase error:', err);
       const currentLang = localStorage.getItem(LANG_KEY) || 'bn';
       toast(translations[currentLang]['dataLoadError'] || 'ডেটা লোড করতে সমস্যা হয়েছে');
+      
+      // Hide skeleton loaders on error
+      document.querySelectorAll('.skeleton').forEach(el => {
+        el.classList.remove('skeleton');
+        el.textContent = '-';
+      });
     });
   </script>
   
