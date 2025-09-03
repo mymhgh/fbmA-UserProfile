@@ -1,610 +1,503 @@
-<!DOCTYPE html>
-<html lang="bn">
+<!DOCTYPE html><html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>টেলিগ্রাম প্রোফাইল</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase App (core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <!-- Firebase Database -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <style>
-        :root {
-            --primary-color: #0088cc;
-            --secondary-color: #1a1a2e;
-            --text-color: #f1f1f1;
-            --bg-color: #121212;
-            --card-bg: #1e1e30;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            --status-bg: #1e2a3a;
-            --border-radius: 12px;
-            --up-color: #00e676;
-            --down-color: #ff5252;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile • Telegram Mini WebApp</title>
+  <!-- =========================
+       THEME & BASE STYLES
+       ========================= -->
+  <style>
+    :root {
+      /* Light Theme */
+      --bg: #0b0f14;            /* Dark default */
+      --bg-soft: #11161d;
+      --card: #11161d;
+      --text: #e9eef7;
+      --text-dim: #a9b3c3;
+      --primary: #27AE60;       /* User's preferred brand color */
+      --primary-weak: rgba(39,174,96,0.16);
+      --border: #1e2734;
+      --ok: #2ecc71;
+      --warn: #f39c12;
+      --err: #e74c3c;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    :root.light {
+      /* Light theme overrides */
+      --bg: #f5f7fb;
+      --bg-soft: #ffffff;
+      --card: #ffffff;
+      --text: #0b0f14;
+      --text-dim: #4d5b72;
+      --primary-weak: rgba(39,174,96,0.12);
+      --border: #e6ecf5;
+      --shadow: 0 10px 24px rgba(2,12,27,.06);
+    }* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-        .light-theme {
-            --primary-color: #0088cc;
-            --secondary-color: #f1f8ff;
-            --text-color: #333;
-            --bg-color: #f9f9f9;
-            --card-bg: #ffffff;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            --status-bg: #f0f9ff;
-            --up-color: #00c853;
-            --down-color: #ff3d00;
-        }
+.app {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px 14px 100px;
+}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            transition: background-color 0.3s, color 0.3s;
-        }
+/* Header */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: linear-gradient(180deg, var(--bg) 70%, transparent);
+  padding: 6px 0 10px;
+  display: flex; align-items: center; gap: 10px; justify-content: space-between;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.logo {
+  width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center;
+  background: var(--primary-weak); color: var(--primary); font-weight: 800;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.title { font-size: 16px; font-weight: 700; letter-spacing: .2px; }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            padding: 20px;
-            min-height: 100vh;
-        }
+/* Buttons */
+.btn {
+  --h: 42px; --px: 14px; --rad: 12px;
+  height: var(--h); padding: 0 var(--px);
+  border-radius: var(--rad);
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  color: var(--text);
+  display: inline-flex; align-items: center; gap: 10px; justify-content: center;
+  font-weight: 600; cursor: pointer; user-select: none;
+  transition: transform .08s ease, background .2s ease, border-color .2s ease;
+  box-shadow: var(--shadow);
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn.primary { background: var(--primary); color: #fff; border-color: transparent; }
+.btn.ghost   { background: transparent; }
+.btn.small   { --h: 34px; --px: 10px; --rad: 10px; font-size: 13px; }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+.theme-switch { display: inline-flex; align-items: center; gap: 8px; }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--primary-color);
-        }
+/* Layout */
+.grid {
+  display: grid; gap: 16px;
+  grid-template-columns: 1.4fr 1fr;
+}
+@media (max-width: 860px) {
+  .grid { grid-template-columns: 1fr; }
+}
 
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+.card h3 { margin: 0 0 12px; font-size: 16px; }
+.muted { color: var(--text-dim); font-size: 13px; }
 
-        .theme-toggle {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 24px;
-            color: var(--text-color);
-        }
+/* Profile */
+.profile {
+  display: grid; grid-template-columns: 92px 1fr; gap: 16px; align-items: center;
+}
+.avatar {
+  width: 92px; height: 92px; border-radius: 22px; overflow: hidden; border: 1px solid var(--border);
+  background: #0a0a0a; display: grid; place-items: center; font-weight: 800; color: #7b8aa2;
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-        .profile-card {
-            background-color: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            padding: 20px;
-            margin-bottom: 20px;
-            animation: fadeIn 0.5s ease-in-out;
-        }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 8px 0; }
+.kv .k { color: var(--text-dim); font-size: 13px; }
+.kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .2px; }
+.copy { display: inline-flex; align-items: center; gap: 8px; }
 
-        .profile-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+/* Stat cards */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 680px){ .stats { grid-template-columns: repeat(2, 1fr);} }
+.stat { padding: 14px; border-radius: 16px; border: 1px solid var(--border); background: linear-gradient(180deg, var(--bg-soft), transparent); }
+.stat .label { color: var(--text-dim); font-size: 12px; }
+.stat .value { font-weight: 800; font-size: 20px; margin-top: 6px; }
 
-        .profile-pic {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--primary-color);
-            margin-right: 20px;
-        }
+/* Table */
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { text-align: left; padding: 10px 8px; border-bottom: 1px dashed var(--border); }
+.table th { color: var(--text-dim); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
+.badge { display: inline-block; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border); font-size: 12px; }
 
-        .profile-info h2 {
-            margin-bottom: 5px;
-            color: var(--primary-color);
-        }
+/* Toast */
+.toast {
+  position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%) translateY(20px);
+  background: var(--bg-soft); color: var(--text);
+  border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: .25s ease;
+  z-index: 100;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        .profile-info p {
-            margin-bottom: 3px;
-            display: flex;
-            align-items: center;
-        }
+/* Skeletons */
+.skeleton { position: relative; overflow: hidden; background: linear-gradient(90deg, var(--bg-soft), rgba(255,255,255,0.05), var(--bg-soft)); background-size: 300% 100%; animation: sk 1.2s infinite linear; }
+@keyframes sk { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
 
-        .copy-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            margin-left: 8px;
-            color: var(--primary-color);
-            font-size: 14px;
-        }
+/* Demo banner (only shows outside Telegram) */
+.demo { margin: 8px 0 14px; border: 1px dashed var(--border); border-radius: 14px; padding: 10px 12px; background: var(--primary-weak); color: var(--text); }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background-color: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            padding: 15px;
-            text-align: center;
-            animation: slideUp 0.5s ease-in-out;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 120px;
-        }
-
-        .stat-card:nth-child(1) { animation-delay: 0.1s; }
-        .stat-card:nth-child(2) { animation-delay: 0.2s; }
-        .stat-card:nth-child(3) { animation-delay: 0.3s; }
-        .stat-card:nth-child(4) { animation-delay: 0.4s; }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: var(--text-color);
-            opacity: 0.8;
-        }
-
-        .withdraw-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 14px;
-            transition: transform 0.2s;
-        }
-
-        .withdraw-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .status-section {
-            background-color: var(--status-bg);
-            border-radius: var(--border-radius);
-            padding: 20px;
-            margin-bottom: 20px;
-            animation: fadeIn 0.7s ease-in-out;
-        }
-
-        .status-title {
-            text-align: center;
-            margin-bottom: 15px;
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .combined-status {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-        }
-
-        .status-visual {
-            height: 40px;
-            background: linear-gradient(90deg, var(--card-bg) 0%, var(--primary-color) 100%);
-            border-radius: var(--border-radius);
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-
-        .status-marker {
-            position: absolute;
-            height: 100%;
-            width: 2px;
-            background-color: white;
-            top: 0;
-        }
-
-        .status-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 10px;
-        }
-
-        .status-details {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .status-detail-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px;
-            background-color: var(--card-bg);
-            border-radius: 8px;
-        }
-
-        .status-detail-name {
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .status-detail-value {
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 8px;
-            box-shadow: var(--shadow);
-            opacity: 0;
-            transform: translateX(100px);
-            transition: opacity 0.3s, transform 0.3s;
-            z-index: 1000;
-        }
-
-        .notification.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100px;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            border-top: 4px solid var(--primary-color);
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 600px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .profile-header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .profile-pic {
-                margin-right: 0;
-                margin-bottom: 15px;
-            }
-        }
-    </style>
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo">টেলিগ্রাম প্রোফাইল</div>
-            <button class="theme-toggle" id="themeToggle">
-                <i class="fas fa-sun"></i>
-            </button>
-        </header>
-
-        <div class="profile-card">
-            <div class="profile-header">
-                <img src="https://via.placeholder.com/100/333333/cccccc?text=..." alt="Profile Picture" class="profile-pic" id="profilePic">
-                <div class="profile-info">
-                    <h2 id="fullName">নাম লোড হচ্ছে...</h2>
-                    <p>
-                        <span id="userName">ইউজারনেম লোড হচ্ছে...</span>
-                        <button class="copy-btn" onclick="copyToClipboard('userName')">
-                            <i class="far fa-copy"></i>
-                        </button>
-                    </p>
-                    <p>
-                        <span id="userId">আইডি লোড হচ্ছে...</span>
-                        <button class="copy-btn" onclick="copyToClipboard('userId')">
-                            <i class="far fa-copy"></i>
-                        </button>
-                    </p>
-                    <p id="joinDate">যোগদানের তারিখ: লোড হচ্ছে...</p>
-                </div>
-            </div>
+  <div class="app">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">OC</div>
+        <div>
+          <div class="title">Profile</div>
+          <div class="muted">Telegram Mini WebApp</div>
         </div>
+      </div>
+      <div class="theme-switch">
+        <button id="themeToggle" class="btn small ghost" title="থিম পরিবর্তন করুন (ডার্ক/লাইট)">🌗 Theme</button>
+      </div>
+    </div><!-- Demo note (hides when inside Telegram) -->
+<div id="demoBanner" class="demo" style="display:none;">
+  Demo Mode সক্রিয়। Telegram পরিবেশ না থাকলে টেস্ট করার জন্য mock user ব্যবহার হচ্ছে।
+</div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="balance">0.00</div>
-                <div class="stat-label">ব্যালেন্স</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="todayEarning">0.00</div>
-                <div class="stat-label">আজকের আয়</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalEarning">0.00</div>
-                <div class="stat-label">মোট আয়</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalWithdraw">0.00</div>
-                <div class="stat-label">মোট উত্তোলন</div>
-                <button class="withdraw-btn" onclick="window.open('https://example.com/withdraw', '_blank')">উত্তোলন</button>
-            </div>
+<!-- Profile Card -->
+<div class="card" id="profileCard">
+  <div class="profile">
+    <div class="avatar" id="avatar"><span>👤</span></div>
+    <div>
+      <div class="kv">
+        <div class="k">Full Name</div>
+        <div class="copy"><span id="fullName" class="kbd skeleton" style="min-width:160px; height:16px; border-radius:6px;"></span>
+          <button class="btn small" data-copy="fullName">Copy</button>
         </div>
-
-        <div class="status-section">
-            <div class="status-title">ইউজার এক্টিভিটি স্ট্যাটাস</div>
-            
-            <div class="combined-status">
-                <div class="status-visual" id="statusVisual">
-                    <div class="status-marker" id="statusMarker"></div>
-                </div>
-                
-                <div class="status-labels">
-                    <span>নিম্ন</span>
-                    <span>মধ্যম</span>
-                    <span>উচ্চ</span>
-                </div>
-                
-                <div class="status-details">
-                    <div class="status-detail-item">
-                        <span class="status-detail-name">ফাইল জমা:</span>
-                        <span class="status-detail-value" id="filesValue">0</span>
-                    </div>
-                    <div class="status-detail-item">
-                        <span class="status-detail-name">সক্রিয়তা স্কোর:</span>
-                        <span class="status-detail-value" id="activityValue">0</span>
-                    </div>
-                    <div class="status-detail-item">
-                        <span class="status-detail-name">ডেইলি আর্নিং:</span>
-                        <span class="status-detail-value" id="dailyValue">$0.00</span>
-                    </div>
-                    <div class="status-detail-item">
-                        <span class="status-detail-name">মার্কেট ভ্যালু:</span>
-                        <span class="status-detail-value" id="marketValue">$0.00</span>
-                    </div>
-                </div>
-            </div>
+      </div>
+      <div class="kv">
+        <div class="k">Username</div>
+        <div class="copy"><span id="username" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
+          <button class="btn small" data-copy="username">Copy</button>
         </div>
+      </div>
+      <div class="kv">
+        <div class="k">TG Chat ID</div>
+        <div class="copy"><span id="chatId" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
+          <button class="btn small" data-copy="chatId">Copy</button>
+        </div>
+      </div>
+      <div class="kv">
+        <div class="k">Join Date</div>
+        <div><span id="joinDate" class="kbd skeleton" style="min-width:120px; height:16px; border-radius:6px;"></span></div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <div class="notification" id="notification">কপি করা হয়েছে!</div>
+<!-- Stats Card -->
+<div class="card">
+  <h3>Account Overview</h3>
+  <div class="stats">
+    <div class="stat">
+      <div class="label">Balance</div>
+      <div id="balance" class="value skeleton" style="height:22px; border-radius:6px;">&nbsp;</div>
+    </div>
+    <div class="stat">
+      <div class="label">Today Earning</div>
+      <div id="todayEarning" class="value skeleton" style="height:22px; border-radius:6px;">&nbsp;</div>
+    </div>
+    <div class="stat">
+      <div class="label">Total Withdraw</div>
+      <div id="totalWithdraw" class="value skeleton" style="height:22px; border-radius:6px;">&nbsp;</div>
+    </div>
+    <div class="stat">
+      <div class="label">Total Earning</div>
+      <div id="totalEarning" class="value skeleton" style="height:22px; border-radius:6px;">&nbsp;</div>
+    </div>
+  </div>
+</div>
 
-    <script>
-        // Firebase configuration (replace with your actual config)
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+<!-- History Card -->
+<div class="card">
+  <h3>উত্তোলন হিস্টরি</h3>
+  <table class="table" id="historyTable">
+    <thead>
+      <tr>
+        <th>তারিখ</th>
+        <th>মেথড</th>
+        <th>পরিমাণ</th>
+        <th>স্ট্যাটাস</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="4" class="muted">লোড হচ্ছে…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+  </div>  <div id="toast" class="toast">Copied!</div>  <!-- =========================
+       TELEGRAM + FIREBASE LOGIC
+       ========================= -->  <script>
+    // ------------------------------
+    // Theme persistence (default: dark)
+    // ------------------------------
+    const root = document.documentElement;
+    const THEME_KEY = 'oc_theme';
+    function applyTheme(t){
+      if(t === 'light') root.classList.add('light'); else root.classList.remove('light');
+      localStorage.setItem(THEME_KEY, t);
+      try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor(t === 'light' ? '#ffffff' : '#0b0f14'); } catch {}
+    }
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+    applyTheme(savedTheme);
+    document.getElementById('themeToggle').addEventListener('click', ()=>{
+      applyTheme(root.classList.contains('light') ? 'dark' : 'light');
+    });
+
+    // ------------------------------
+    // Helpers
+    // ------------------------------
+    const $ = (id) => document.getElementById(id);
+    const toast = (msg='Copied!') => { const el=$('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 1200); };
+    const fmtMoney = (n) => (typeof n === 'number' ? n : Number(n||0)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    // Copy buttons
+    document.querySelectorAll('[data-copy]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id = btn.getAttribute('data-copy');
+        const text = $(id)?.dataset?.value || $(id)?.textContent?.trim();
+        try { await navigator.clipboard.writeText(text); toast('Copied: '+text); } catch { toast('Copy failed'); }
+      });
+    });
+
+    // ------------------------------
+    // Telegram user (real or mock for local testing)
+    // ------------------------------
+    function getTelegramUser(){
+      const tg = window.Telegram?.WebApp;
+      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        try { tg.ready?.(); tg.expand?.(); } catch {}
+        return { source: 'telegram', user: tg.initDataUnsafe.user };
+      }
+      // Mock (for local dev)
+      const mock = {
+        id: 999999999,
+        first_name: 'OC',
+        last_name: 'User',
+        username: 'ocearn_demo',
+        language_code: 'bn',
+        is_premium: true,
+        photo_url: ''
+      };
+      return { source: 'mock', user: mock };
+    }
+
+    // Render profile skeleton to real content
+    function renderProfile(u, joinedAt){
+      const fullName = [u.first_name, u.last_name].filter(Boolean).join(' ') || '-';
+      const uname = u.username ? '@'+u.username : '-';
+      const id = String(u.id);
+
+      const pic = u.photo_url;
+      const avatar = $('avatar');
+      if (pic) {
+        avatar.innerHTML = `<img alt="avatar" src="${pic}">`;
+      } else {
+        avatar.innerHTML = '<span>👤</span>';
+      }
+
+      const setText = (el, text) => { el.classList.remove('skeleton'); el.textContent = text; el.dataset.value = text; };
+      setText($('fullName'), fullName);
+      setText($('username'), uname);
+      setText($('chatId'), id);
+      setText($('joinDate'), joinedAt ? new Date(joinedAt).toLocaleDateString() : new Date().toLocaleDateString());
+    }
+
+    function renderStats(stats){
+      const setV = (id, v) => { const el=$(id); el.classList.remove('skeleton'); el.textContent = fmtMoney(v); };
+      setV('balance', stats.balance || 0);
+      setV('todayEarning', stats.todayEarning || 0);
+      setV('totalWithdraw', stats.totalWithdraw || 0);
+      setV('totalEarning', stats.totalEarning || 0);
+    }
+
+    function renderHistory(rows){
+      const tbody = document.querySelector('#historyTable tbody');
+      tbody.innerHTML = '';
+      if (!rows || !rows.length) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="4" class="muted">কোনো হিস্টরি পাওয়া যায়নি</td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+      rows.forEach(r=>{
+        const tr = document.createElement('tr');
+        const date = r.createdAt ? new Date(r.createdAt).toLocaleString() : '-';
+        const method = r.method || '-';
+        const amt = fmtMoney(r.amount||0);
+        const status = r.status || 'pending';
+        tr.innerHTML = `
+          <td>${date}</td>
+          <td>${method}</td>
+          <td>${amt}</td>
+          <td><span class="badge">${status}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>  <!-- =========================
+       FIREBASE (v9 Modular via CDN)
+       Fill your config below
+       ========================= -->  <script type="module">
+    // ===== IMPORTANT: Add your Firebase project config here =====
+    // 🔧 Replace the placeholders with your real values from Firebase Console
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      // OPTIONAL: If you also use Realtime DB
+      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app"
+    };
+
+    // ===== Imports =====
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+
+    // ===== App Init =====
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ===== Telegram user (real or mock) =====
+    const { source, user } = getTelegramUser();
+    const demoBanner = document.getElementById('demoBanner');
+    if (source === 'mock') demoBanner.style.display = 'block';
+
+    // ===== Ensure user doc exists, then load everything =====
+    async function ensureUserAndLoad(){
+      const uid = String(user.id);
+      const uRef = doc(db, 'users', uid);
+      const snap = await getDoc(uRef);
+
+      let joinedAt = Date.now();
+
+      if (!snap.exists()) {
+        // Create new user with defaults
+        const payload = {
+          id: uid,
+          first_name: user.first_name || '',
+          last_name: user.last_name || '',
+          username: user.username || '',
+          photo_url: user.photo_url || '',
+          is_premium: !!user.is_premium,
+          language_code: user.language_code || 'en',
+          balance: 0,
+          todayEarning: 0,
+          totalWithdraw: 0,
+          totalEarning: 0,
+          joinDate: serverTimestamp(),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
         };
-        
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        
-        // DOM Elements
-        const themeToggle = document.getElementById('themeToggle');
-        const notification = document.getElementById('notification');
-        
-        // Set dark theme as default
-        document.body.classList.remove('light-theme');
-        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        localStorage.setItem('theme', 'dark');
-        
-        // Theme Toggle
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('light-theme');
-            if (document.body.classList.contains('light-theme')) {
-                localStorage.setItem('theme', 'light');
-                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-            } else {
-                localStorage.setItem('theme', 'dark');
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-            }
+        await setDoc(uRef, payload);
+      } else {
+        const data = snap.data();
+        joinedAt = (data.joinDate?.toDate?.() ? data.joinDate.toDate().getTime() : (data.joinDate || Date.now()));
+        // Keep profile fields in sync (non-destructive)
+        const patch = {};
+        if ((data.first_name||'') !== (user.first_name||'')) patch.first_name = user.first_name || '';
+        if ((data.last_name||'') !== (user.last_name||'')) patch.last_name = user.last_name || '';
+        if ((data.username||'') !== (user.username||'')) patch.username = user.username || '';
+        if ((data.photo_url||'') !== (user.photo_url||'')) patch.photo_url = user.photo_url || '';
+        if (Object.keys(patch).length) patch.updatedAt = serverTimestamp();
+        if (Object.keys(patch).length) await updateDoc(uRef, patch);
+      }
+
+      // Render profile (with latest known join date)
+      renderProfile(user, joinedAt);
+
+      // Load stats fresh
+      const fresh = (await getDoc(uRef)).data();
+      renderStats({
+        balance: fresh?.balance || 0,
+        todayEarning: fresh?.todayEarning || 0,
+        totalWithdraw: fresh?.totalWithdraw || 0,
+        totalEarning: fresh?.totalEarning || 0,
+      });
+
+      // Load withdraw history (latest 20)
+      const hRef = collection(uRef, 'withdraws');
+      const q = query(hRef, orderBy('createdAt','desc'), limit(20));
+      const hSnap = await getDocs(q);
+      const rows = [];
+      hSnap.forEach(d=>{
+        const x = d.data();
+        rows.push({
+          amount: x.amount || 0,
+          method: x.method || '-',
+          status: x.status || 'pending',
+          createdAt: x.createdAt?.toDate?.() ? x.createdAt.toDate().getTime() : (x.createdAt || null)
         });
-        
-        // Copy to Clipboard Function
-        function copyToClipboard(elementId) {
-            const element = document.getElementById(elementId);
-            const textToCopy = element.textContent;
-            
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                showNotification('কপি করা হয়েছে!');
-            }).catch(err => {
-                console.error('কপি করতে সমস্যা হয়েছে: ', err);
-            });
+      });
+      renderHistory(rows);
+
+      // LocalStorage cache (optional, quick load next time)
+      try {
+        const cache = { profile: { id: user.id, first_name: user.first_name, last_name: user.last_name, username: user.username, photo_url: user.photo_url, joinDate: joinedAt }, stats: { balance: fresh?.balance||0, todayEarning: fresh?.todayEarning||0, totalWithdraw: fresh?.totalWithdraw||0, totalEarning: fresh?.totalEarning||0 } };
+        localStorage.setItem('oc_profile_cache', JSON.stringify(cache));
+      } catch {}
+    }
+
+    // Try to render from LocalStorage cache instantly (if exists)
+    try {
+      const c = JSON.parse(localStorage.getItem('oc_profile_cache')||'null');
+      if (c?.profile) renderProfile({
+        id: c.profile.id,
+        first_name: c.profile.first_name,
+        last_name: c.profile.last_name,
+        username: c.profile.username,
+        photo_url: c.profile.photo_url
+      }, c.profile.joinDate);
+      if (c?.stats) renderStats(c.stats);
+    } catch {}
+
+    // Load from Firestore (and create if missing)
+    ensureUserAndLoad().catch(err=>{
+      console.error(err);
+      renderHistory([]);
+      toast('Failed to load data');
+    });
+  </script>  <!-- Telegram WebApp JS (optional, loaded by Telegram client automatically). Safe to include for local preview. -->  <script src="https://telegram.org/js/telegram-web-app.js"></script>  <!-- =========================
+       SECURITY NOTES (read-only)
+       ========================= -->  <!--
+    ⚠️ Important Firebase Security:
+    • In Production, restrict Firestore rules so users can ONLY read/write their own doc.
+    Example rules (adjust to your structure):
+
+    rules_version = '2';
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        match /users/{uid} {
+          allow read, update: if request.auth != null && request.auth.uid == uid;  // With Firebase Auth
+          allow create: if true; // or ensure creation by trusted backend only
+          match /withdraws/{doc} {
+            allow read: if request.auth != null && request.auth.uid == uid;
+            allow write: if false; // or guarded backend only
+          }
         }
-        
-        // Show Notification
-        function showNotification(message) {
-            notification.textContent = message;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 2000);
-        }
-        
-        // Calculate status based on balance values
-        function calculateStatus(balance, todayEarning, totalEarning, totalWithdraw) {
-            // Simple algorithm to calculate status based on all balance values
-            const total = balance + todayEarning + totalEarning + totalWithdraw;
-            let statusLevel = 0;
-            
-            if (total > 1000) statusLevel = 90;
-            else if (total > 500) statusLevel = 70;
-            else if (total > 100) statusLevel = 50;
-            else if (total > 50) statusLevel = 30;
-            else statusLevel = 10;
-            
-            return statusLevel;
-        }
-        
-        // Update status visualization
-        function updateStatusVisualization(level) {
-            const marker = document.getElementById('statusMarker');
-            marker.style.left = `${level}%`;
-        }
-        
-        // Load user data from Telegram
-        function loadUserDataFromTelegram() {
-            // Check if we're in Telegram WebApp
-            if (window.Telegram && window.Telegram.WebApp) {
-                const tg = window.Telegram.WebApp;
-                const user = tg.initDataUnsafe.user;
-                
-                if (user) {
-                    return {
-                        photoUrl: user.photo_url || 'https://via.placeholder.com/100/333333/cccccc?text=User',
-                        fullName: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-                        userName: user.username || 'নাম없া',
-                        userId: user.id.toString(),
-                        joinDate: new Date().toLocaleDateString('bn-BD')
-                    };
-                }
-            }
-            
-            // Return null if not in Telegram or user data not available
-            return null;
-        }
-        
-        // Load user financial data from Firebase
-        function loadUserFinancialData(userId) {
-            const userRef = database.ref('users/' + userId);
-            
-            userRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                
-                if (data) {
-                    // Update financial information
-                    document.getElementById('balance').textContent = (data.balance || 0).toFixed(2);
-                    document.getElementById('todayEarning').textContent = (data.todayEarning || 0).toFixed(2);
-                    document.getElementById('totalEarning').textContent = (data.totalEarning || 0).toFixed(2);
-                    document.getElementById('totalWithdraw').textContent = (data.totalWithdraw || 0).toFixed(2);
-                    
-                    // Update status details
-                    document.getElementById('filesValue').textContent = data.filesSubmitted || 0;
-                    document.getElementById('activityValue').textContent = data.activityScore || 0;
-                    document.getElementById('dailyValue').textContent = '$' + (data.dailyEarning || 0).toFixed(2);
-                    document.getElementById('marketValue').textContent = '$' + (data.marketValue || 0).toFixed(2);
-                    
-                    // Calculate and update status visualization
-                    const statusLevel = calculateStatus(
-                        data.balance || 0,
-                        data.todayEarning || 0,
-                        data.totalEarning || 0,
-                        data.totalWithdraw || 0
-                    );
-                    
-                    updateStatusVisualization(statusLevel);
-                } else {
-                    // Set default values if no data exists
-                    setDefaultFinancialData(userId);
-                }
-            }, (error) => {
-                console.error('Firebase error:', error);
-                setDefaultFinancialData(userId);
-            });
-        }
-        
-        // Set default financial data in Firebase
-        function setDefaultFinancialData(userId) {
-            const defaultData = {
-                balance: 0.00,
-                todayEarning: 0.00,
-                totalEarning: 0.00,
-                totalWithdraw: 0.00,
-                filesSubmitted: 0,
-                activityScore: 0,
-                dailyEarning: 0.00,
-                marketValue: 0.00
-            };
-            
-            database.ref('users/' + userId).set(defaultData)
-            .then(() => {
-                console.log("Default financial data set for user:", userId);
-            })
-            .catch((error) => {
-                console.error("Error setting default data:", error);
-            });
-        }
-        
-        // Initialize the application
-        function initApp() {
-            const telegramData = loadUserDataFromTelegram();
-            
-            if (telegramData) {
-                // Update profile information from Telegram
-                document.getElementById('profilePic').src = telegramData.photoUrl;
-                document.getElementById('fullName').textContent = telegramData.fullName;
-                document.getElementById('userName').textContent = '@' + telegramData.userName;
-                document.getElementById('userId').textContent = 'ID: ' + telegramData.userId;
-                document.getElementById('joinDate').textContent = 'যোগদানের তারিখ: ' + telegramData.joinDate;
-                
-                // Load financial data from Firebase
-                loadUserFinancialData(telegramData.userId);
-                
-                // Store user ID for future use
-                window.userId = telegramData.userId;
-            } else {
-                // Not in Telegram environment, show message
-                document.getElementById('fullName').textContent = "টেলিগ্রাম থেকে ডেটা লোড হয়নি";
-                document.getElementById('userName').textContent = "টেলিগ্রাম WebApp এ খুলুন";
-                
-                // Set all values to zero
-                document.getElementById('balance').textContent = "0.00";
-                document.getElementById('todayEarning').textContent = "0.00";
-                document.getElementById('totalEarning').textContent = "0.00";
-                document.getElementById('totalWithdraw').textContent = "0.00";
-                
-                document.getElementById('filesValue').textContent = "0";
-                document.getElementById('activityValue').textContent = "0";
-                document.getElementById('dailyValue').textContent = "$0.00";
-                document.getElementById('marketValue').textContent = "$0.00";
-                
-                updateStatusVisualization(10);
-            }
-        }
-        
-        // Initialize the app when page loads
-        window.addEventListener('load', initApp);
-    </script>
-</body>
+      }
+    }
+
+    • If you are not using Firebase Auth and only Telegram, consider proxying via your backend (Express) to verify Telegram initData server-side before writing to DB.
+  --></body>
 </html>
