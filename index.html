@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="bn">
+<!DOCTYPE html>
+<html lang="bn">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -115,10 +116,24 @@ body {
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.kv { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 8px 0; }
+.kv { 
+  display: grid; 
+  grid-template-columns: 1fr auto; 
+  gap: 8px; 
+  align-items: center; 
+  padding: 8px 0; 
+}
 .kv .k { color: var(--text-dim); font-size: 13px; }
-.kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .2px; }
-.copy { display: inline-flex; align-items: center; gap: 8px; }
+.kbd { 
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; 
+  letter-spacing: .2px; 
+  margin-right: 8px;
+}
+.copy { 
+  display: flex; 
+  align-items: center; 
+  justify-content: flex-end;
+}
 
 /* Stat cards */
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
@@ -178,25 +193,30 @@ body {
     <div>
       <div class="kv">
         <div class="k">Full Name</div>
-        <div class="copy"><span id="fullName" class="kbd skeleton" style="min-width:160px; height:16px; border-radius:6px;"></span>
+        <div class="copy">
+          <span id="fullName" class="kbd skeleton" style="min-width:160px; height:16px; border-radius:6px;"></span>
           <button class="btn small" data-copy="fullName">Copy</button>
         </div>
       </div>
       <div class="kv">
         <div class="k">Username</div>
-        <div class="copy"><span id="username" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
+        <div class="copy">
+          <span id="username" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
           <button class="btn small" data-copy="username">Copy</button>
         </div>
       </div>
       <div class="kv">
         <div class="k">TG Chat ID</div>
-        <div class="copy"><span id="chatId" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
+        <div class="copy">
+          <span id="chatId" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
           <button class="btn small" data-copy="chatId">Copy</button>
         </div>
       </div>
       <div class="kv">
         <div class="k">Join Date</div>
-        <div><span id="joinDate" class="kbd skeleton" style="min-width:120px; height:16px; border-radius:6px;"></span></div>
+        <div class="copy">
+          <span id="joinDate" class="kbd skeleton" style="min-width:120px; height:16px; border-radius:6px;"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -282,11 +302,21 @@ body {
     // Telegram user (real or mock for local testing)
     // ------------------------------
     function getTelegramUser(){
+      // Telegram WebApp initialization
+      if (window.Telegram && window.Telegram.WebApp) {
+        try {
+          window.Telegram.WebApp.ready();
+          window.Telegram.WebApp.expand();
+        } catch (error) {
+          console.log('Telegram WebApp initialization error:', error);
+        }
+      }
+      
       const tg = window.Telegram?.WebApp;
       if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        try { tg.ready?.(); tg.expand?.(); } catch {}
         return { source: 'telegram', user: tg.initDataUnsafe.user };
       }
+      
       // Mock (for local dev)
       const mock = {
         id: 999999999,
@@ -302,6 +332,8 @@ body {
 
     // Render profile skeleton to real content
     function renderProfile(u, joinedAt){
+      if (!u) return;
+      
       const fullName = [u.first_name, u.last_name].filter(Boolean).join(' ') || '-';
       const uname = u.username ? '@'+u.username : '-';
       const id = String(u.id);
@@ -372,7 +404,7 @@ body {
 
     // ===== Imports =====
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, orderBy, limit, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
 
     // ===== App Init =====
     const app = initializeApp(firebaseConfig);
@@ -385,6 +417,12 @@ body {
 
     // ===== Ensure user doc exists, then load everything =====
     async function ensureUserAndLoad(){
+      if (!user || !user.id) {
+        console.error('User data not available');
+        toast('ইউজার ডেটা লোড করতে সমস্যা হয়েছে');
+        return;
+      }
+      
       const uid = String(user.id);
       const uRef = doc(db, 'users', uid);
       const snap = await getDoc(uRef);
@@ -450,6 +488,33 @@ body {
         });
       });
       renderHistory(rows);
+
+      // Set up real-time listeners
+      onSnapshot(uRef, (doc) => {
+        if (doc.exists()) {
+          const data = doc.data();
+          renderStats({
+            balance: data.balance || 0,
+            todayEarning: data.todayEarning || 0,
+            totalWithdraw: data.totalWithdraw || 0,
+            totalEarning: data.totalEarning || 0,
+          });
+        }
+      });
+
+      onSnapshot(q, (querySnapshot) => {
+        const rows = [];
+        querySnapshot.forEach((doc) => {
+          const x = doc.data();
+          rows.push({
+            amount: x.amount || 0,
+            method: x.method || '-',
+            status: x.status || 'pending',
+            createdAt: x.createdAt?.toDate?.() ? x.createdAt.toDate().getTime() : (x.createdAt || null)
+          });
+        });
+        renderHistory(rows);
+      });
 
       // LocalStorage cache (optional, quick load next time)
       try {
