@@ -8,25 +8,13 @@
     <style>
         :root {
             --primary-color: #0088cc;
-            --secondary-color: #f1f8ff;
-            --text-color: #333;
-            --bg-color: #f9f9f9;
-            --card-bg: #ffffff;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            --status-bg: #f0f9ff;
-            --border-radius: 12px;
-            --up-color: #00c853;
-            --down-color: #ff3d00;
-        }
-
-        .dark-theme {
-            --primary-color: #0088cc;
             --secondary-color: #1a1a2e;
             --text-color: #f1f1f1;
             --bg-color: #121212;
             --card-bg: #1e1e30;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
             --status-bg: #1e2a3a;
+            --border-radius: 12px;
             --up-color: #00e676;
             --down-color: #ff5252;
         }
@@ -188,36 +176,44 @@
             font-weight: bold;
         }
 
-        .market-status {
+        .combined-status {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
         }
 
-        .market-item {
+        .status-item {
             background-color: var(--card-bg);
             border-radius: var(--border-radius);
             padding: 15px;
             box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
         }
 
-        .market-header {
+        .status-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
-            font-weight: bold;
         }
 
-        .market-value {
+        .status-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .status-value {
             font-size: 18px;
             font-weight: bold;
+            color: var(--primary-color);
         }
 
-        .market-change {
+        .status-change {
             display: flex;
             align-items: center;
-            font-size: 14px;
+            font-size: 12px;
+            margin-top: 5px;
         }
 
         .up {
@@ -228,8 +224,8 @@
             color: var(--down-color);
         }
 
-        .market-graph {
-            height: 40px;
+        .status-graph {
+            height: 30px;
             margin-top: 10px;
             position: relative;
         }
@@ -272,12 +268,33 @@
             transform: translateX(0);
         }
 
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 600px) {
             .stats-grid {
                 grid-template-columns: 1fr;
             }
             
-            .market-status {
+            .combined-status {
                 grid-template-columns: 1fr;
             }
             
@@ -293,18 +310,18 @@
         }
     </style>
 </head>
-<body>
+<body class="dark-theme">
     <div class="container">
         <header>
             <div class="logo">টেলিগ্রাম প্রোফাইল</div>
             <button class="theme-toggle" id="themeToggle">
-                <i class="fas fa-moon"></i>
+                <i class="fas fa-sun"></i>
             </button>
         </header>
 
         <div class="profile-card">
             <div class="profile-header">
-                <img src="https://via.placeholder.com/100" alt="Profile Picture" class="profile-pic" id="profilePic">
+                <img src="https://via.placeholder.com/100/333333/cccccc?text=..." alt="Profile Picture" class="profile-pic" id="profilePic">
                 <div class="profile-info">
                     <h2 id="fullName">নাম লোড হচ্ছে...</h2>
                     <p>
@@ -347,53 +364,53 @@
         <div class="status-section">
             <div class="status-title">ইউজার এক্টিভিটি স্ট্যাটাস</div>
             
-            <div class="market-status">
-                <div class="market-item">
-                    <div class="market-header">
-                        <span>ফাইল জমা</span>
-                        <span class="market-value" id="filesSubmittedValue">42</span>
+            <div class="combined-status">
+                <div class="status-item">
+                    <div class="status-header">
+                        <span class="status-name">ফাইল জমা</span>
+                        <span class="status-value" id="filesSubmittedValue">0</span>
                     </div>
-                    <div class="market-change up">
+                    <div class="status-change up">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+5 (12%)</span>
+                        <span id="filesChange">+0 (0%)</span>
                     </div>
-                    <div class="market-graph" id="filesGraph"></div>
+                    <div class="status-graph" id="filesGraph"></div>
                 </div>
                 
-                <div class="market-item">
-                    <div class="market-header">
-                        <span>ডেইলি আর্নিং</span>
-                        <span class="market-value" id="dailyEarningValue">$12.75</span>
+                <div class="status-item">
+                    <div class="status-header">
+                        <span class="status-name">ডেইলি আর্নিং</span>
+                        <span class="status-value" id="dailyEarningValue">$0.00</span>
                     </div>
-                    <div class="market-change up">
+                    <div class="status-change up">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+$2.50 (24%)</span>
+                        <span id="earningChange">+$0.00 (0%)</span>
                     </div>
-                    <div class="market-graph" id="earningGraph"></div>
+                    <div class="status-graph" id="earningGraph"></div>
                 </div>
                 
-                <div class="market-item">
-                    <div class="market-header">
-                        <span>সক্রিয়তা স্কোর</span>
-                        <span class="market-value" id="activityScoreValue">78</span>
+                <div class="status-item">
+                    <div class="status-header">
+                        <span class="status-name">সক্রিয়তা স্কোর</span>
+                        <span class="status-value" id="activityScoreValue">0</span>
                     </div>
-                    <div class="market-change down">
+                    <div class="status-change down">
                         <i class="fas fa-arrow-down"></i>
-                        <span>-2 (3%)</span>
+                        <span id="activityChange">-0 (0%)</span>
                     </div>
-                    <div class="market-graph" id="activityGraph"></div>
+                    <div class="status-graph" id="activityGraph"></div>
                 </div>
                 
-                <div class="market-item">
-                    <div class="market-header">
-                        <span>মার্কেট ভ্যালু</span>
-                        <span class="market-value" id="marketValue">$45.60</span>
+                <div class="status-item">
+                    <div class="status-header">
+                        <span class="status-name">মার্কেট ভ্যালু</span>
+                        <span class="status-value" id="marketValue">$0.00</span>
                     </div>
-                    <div class="market-change up">
+                    <div class="status-change up">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+$5.20 (13%)</span>
+                        <span id="marketChange">+$0.00 (0%)</span>
                     </div>
-                    <div class="market-graph" id="marketGraph"></div>
+                    <div class="status-graph" id="marketGraph"></div>
                 </div>
             </div>
         </div>
@@ -407,9 +424,11 @@
         const notification = document.getElementById('notification');
         
         // Check for saved theme preference
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-theme');
-            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.remove('dark-theme');
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        } else {
+            localStorage.setItem('theme', 'dark');
         }
         
         // Theme Toggle
@@ -453,7 +472,7 @@
             
             const values = [];
             for (let i = 0; i < pointCount; i++) {
-                values.push(Math.random() * 40);
+                values.push(Math.random() * 30);
             }
             
             const maxValue = Math.max(...values);
@@ -469,69 +488,142 @@
             });
         }
         
+        // Load user data from Telegram
+        function loadUserDataFromTelegram() {
+            // Check if we're in Telegram WebApp
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                const user = tg.initDataUnsafe.user;
+                
+                if (user) {
+                    return {
+                        photoUrl: user.photo_url || 'https://via.placeholder.com/100/333333/cccccc?text=User',
+                        fullName: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+                        userName: user.username || 'নাম없া',
+                        userId: user.id.toString(),
+                        joinDate: new Date().toLocaleDateString('bn-BD')
+                    };
+                }
+            }
+            
+            // Return null if not in Telegram or user data not available
+            return null;
+        }
+        
         // Load user data from Firebase (simulated)
-        function loadUserData() {
+        function loadUserDataFromFirebase(userId) {
             // In a real app, you would fetch this from Firebase
-            const userData = {
-                photoUrl: 'https://via.placeholder.com/100/0088cc/ffffff?text=User',
-                fullName: 'আব্দুল করিম',
-                userName: 'abdulkarim',
-                userId: '123456789',
-                joinDate: '১৫ জুন, ২০২৩',
-                balance: 255.50,
-                todayEarning: 12.75,
-                totalWithdraw: 120.00,
-                totalEarning: 375.50,
-                filesSubmitted: 42,
-                dailyEarningStatus: 12.75,
-                activityScore: 78,
-                marketValue: 45.60
+            // This is a simulation with default values
+            return {
+                balance: 0.00,
+                todayEarning: 0.00,
+                totalWithdraw: 0.00,
+                totalEarning: 0.00,
+                filesSubmitted: 0,
+                dailyEarningStatus: 0.00,
+                activityScore: 0,
+                marketValue: 0.00,
+                filesChange: "+0 (0%)",
+                earningChange: "+$0.00 (0%)",
+                activityChange: "-0 (0%)",
+                marketChange: "+$0.00 (0%)"
+            };
+        }
+        
+        // Update user data in Firebase (simulated)
+        function updateUserDataInFirebase(userId, data) {
+            // In a real app, you would update Firebase here
+            console.log("Firebase update simulated for user:", userId, data);
+            localStorage.setItem('userData_' + userId, JSON.stringify(data));
+        }
+        
+        // Load user data
+        function loadUserData() {
+            const telegramData = loadUserDataFromTelegram();
+            
+            if (telegramData) {
+                // Update profile information from Telegram
+                document.getElementById('profilePic').src = telegramData.photoUrl;
+                document.getElementById('fullName').textContent = telegramData.fullName;
+                document.getElementById('userName').textContent = '@' + telegramData.userName;
+                document.getElementById('userId').textContent = 'ID: ' + telegramData.userId;
+                document.getElementById('joinDate').textContent = 'যোগদানের তারিখ: ' + telegramData.joinDate;
+                
+                // Load financial data from Firebase
+                const firebaseData = loadUserDataFromFirebase(telegramData.userId);
+                
+                // Update financial information
+                document.getElementById('balance').textContent = firebaseData.balance.toFixed(2);
+                document.getElementById('todayEarning').textContent = firebaseData.todayEarning.toFixed(2);
+                document.getElementById('totalWithdraw').textContent = firebaseData.totalWithdraw.toFixed(2);
+                document.getElementById('totalEarning').textContent = firebaseData.totalEarning.toFixed(2);
+                
+                // Update status information
+                document.getElementById('filesSubmittedValue').textContent = firebaseData.filesSubmitted;
+                document.getElementById('dailyEarningValue').textContent = '$' + firebaseData.dailyEarningStatus.toFixed(2);
+                document.getElementById('activityScoreValue').textContent = firebaseData.activityScore;
+                document.getElementById('marketValue').textContent = '$' + firebaseData.marketValue.toFixed(2);
+                
+                // Update changes
+                document.getElementById('filesChange').textContent = firebaseData.filesChange;
+                document.getElementById('earningChange').textContent = firebaseData.earningChange;
+                document.getElementById('activityChange').textContent = firebaseData.activityChange;
+                document.getElementById('marketChange').textContent = firebaseData.marketChange;
+                
+                // Set change colors
+                document.getElementById('filesChange').className = 'status-change ' + (firebaseData.filesChange.includes('+') ? 'up' : 'down');
+                document.getElementById('earningChange').className = 'status-change ' + (firebaseData.earningChange.includes('+') ? 'up' : 'down');
+                document.getElementById('activityChange').className = 'status-change ' + (firebaseData.activityChange.includes('+') ? 'up' : 'down');
+                document.getElementById('marketChange').className = 'status-change ' + (firebaseData.marketChange.includes('+') ? 'up' : 'down');
+                
+                // Generate market graphs
+                generateGraphData('filesGraph', 12);
+                generateGraphData('earningGraph', 12);
+                generateGraphData('activityGraph', 12);
+                generateGraphData('marketGraph', 12);
+                
+                // Store user ID for future updates
+                window.userId = telegramData.userId;
+            } else {
+                // Not in Telegram environment, show message
+                document.getElementById('fullName').textContent = "টেলিগ্রাম থেকে ডেটা লোড হয়নি";
+                document.getElementById('userName').textContent = "টেলিগ্রাম WebApp এ খুলুন";
+            }
+        }
+        
+        // Simulate real-time updates from Firebase
+        function simulateRealtimeUpdates() {
+            if (!window.userId) return;
+            
+            // Simulate balance update
+            const balanceElem = document.getElementById('balance');
+            const currentBalance = parseFloat(balanceElem.textContent);
+            const newBalance = currentBalance + (Math.random() * 0.5);
+            balanceElem.textContent = newBalance.toFixed(2);
+            
+            // Simulate today's earning update
+            const todayEarningElem = document.getElementById('todayEarning');
+            const currentEarning = parseFloat(todayEarningElem.textContent);
+            const newEarning = Math.max(0, currentEarning + (Math.random() * 0.2));
+            todayEarningElem.textContent = newEarning.toFixed(2);
+            
+            // Update Firebase with new data (simulated)
+            const updatedData = {
+                balance: parseFloat(newBalance),
+                todayEarning: parseFloat(newEarning),
+                // Other fields would be updated similarly in a real app
             };
             
-            // Update profile information
-            document.getElementById('profilePic').src = userData.photoUrl;
-            document.getElementById('fullName').textContent = userData.fullName;
-            document.getElementById('userName').textContent = '@' + userData.userName;
-            document.getElementById('userId').textContent = 'ID: ' + userData.userId;
-            document.getElementById('joinDate').textContent = 'যোগদানের তারিখ: ' + userData.joinDate;
-            
-            // Update financial information
-            document.getElementById('balance').textContent = userData.balance.toFixed(2);
-            document.getElementById('todayEarning').textContent = userData.todayEarning.toFixed(2);
-            document.getElementById('totalWithdraw').textContent = userData.totalWithdraw.toFixed(2);
-            document.getElementById('totalEarning').textContent = userData.totalEarning.toFixed(2);
-            
-            // Update status information
-            document.getElementById('filesSubmittedValue').textContent = userData.filesSubmitted;
-            document.getElementById('dailyEarningValue').textContent = '$' + userData.dailyEarningStatus.toFixed(2);
-            document.getElementById('activityScoreValue').textContent = userData.activityScore;
-            document.getElementById('marketValue').textContent = '$' + userData.marketValue.toFixed(2);
-            
-            // Generate market graphs
-            generateGraphData('filesGraph', 12);
-            generateGraphData('earningGraph', 12);
-            generateGraphData('activityGraph', 12);
-            generateGraphData('marketGraph', 12);
+            updateUserDataInFirebase(window.userId, updatedData);
         }
         
         // Initialize the page
         window.addEventListener('load', () => {
             loadUserData();
-        });
-        
-        // Simulate real-time updates from Firebase
-        setInterval(() => {
-            // In a real app, this would listen to Firebase changes
-            const balanceElem = document.getElementById('balance');
-            const currentBalance = parseFloat(balanceElem.textContent);
-            const newBalance = currentBalance + (Math.random() * 2 - 1);
-            balanceElem.textContent = newBalance.toFixed(2);
             
-            const todayEarningElem = document.getElementById('todayEarning');
-            const currentEarning = parseFloat(todayEarningElem.textContent);
-            const newEarning = Math.max(0, currentEarning + (Math.random() * 0.5));
-            todayEarningElem.textContent = newEarning.toFixed(2);
-        }, 10000);
+            // Set up real-time updates simulation
+            setInterval(simulateRealtimeUpdates, 10000);
+        });
     </script>
 </body>
 </html>
