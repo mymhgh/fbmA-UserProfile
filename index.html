@@ -51,7 +51,7 @@
     .app {
       max-width: 980px;
       margin: 0 auto;
-      padding: 18px 14px 100px;
+      padding: 10px 14px 100px; /* হেডার ফাঁকা জায়গা কমিয়ে আনা হয়েছে */
     }
 
     /* Section spacing */
@@ -63,7 +63,7 @@
     .topbar {
       position: sticky; top: 0; z-index: 50;
       background: linear-gradient(180deg, var(--bg) 70%, transparent);
-      padding: 6px 0 10px;
+      padding: 4px 0 8px; /* হেডার ফাঁকা জায়গা কমিয়ে আনা হয়েছে */
       display: flex; align-items: center; gap: 10px; justify-content: space-between;
     }
     .brand { display: flex; align-items: center; gap: 10px; }
@@ -180,13 +180,12 @@
       border: 1px solid var(--border);
     }
 
- /* নামের জন্য overflow হাইড */
-    .user-name {
+    /* টেক্সট ওভারফ্লো ফিক্স - নাম, ইউজারনেম ইত্যাদির জন্য */
+    .text-truncate {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 20px;
-      display: block;
+      max-width: 180px;
     }
     
   </style>
@@ -215,27 +214,27 @@
             <div class="kv">
               <div class="k" data-i18n="name">Name:</div>
               <div class="copy">
-                <span id="fullName" class="kbd skeleton" style="min-width:160px; height:16px; border-radius:6px;"></span>
+                <span id="fullName" class="kbd text-truncate skeleton" style="min-width:160px; height:16px; border-radius:6px;"></span>
               </div>
             </div>
             <div class="kv">
               <div class="k" data-i18n="username">TgUN:</div>
               <div class="copy">
-                <span id="username" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
+                <span id="username" class="kbd text-truncate skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
                 <button class="btn icon small" data-copy="username" title="Copy"> <i class="fa-solid fa-copy"></i> </button>
               </div>
             </div>
             <div class="kv">
               <div class="k" data-i18n="userid">UID:</div>
               <div class="copy">
-                <span id="chatId" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
+                <span id="chatId" class="kbd text-truncate skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
                 <button class="btn icon small" data-copy="chatId" title="Copy"> <i class="fa-solid fa-copy"> </i></button>
               </div>
             </div>
             <div class="kv">
               <div class="k" data-i18n="joindate">Date:</div>
               <div class="copy">
-                <span id="joinDate" class="kbd skeleton" style="min-width:120px; height:16px; border-radius:6px;"></span>
+                <span id="joinDate" class="kbd text-truncate skeleton" style="min-width:120px; height:16px; border-radius:6px;"></span>
               </div>
             </div>
           </div>
@@ -370,6 +369,11 @@
       document.getElementById('languageText').textContent = lang === 'bn' ? 'English' : 'বাংলা';
       document.getElementById('languageToggle').setAttribute('title', lang === 'bn' ? 'Change to English' : 'বাংলায় পরিবর্তন করুন');
       localStorage.setItem(LANG_KEY, lang);
+      
+      // Firebase-এ ভাষা প্রেফারেন্স আপডেট করুন (যদি ইউজার লগ ইন করা থাকে)
+      if (window.currentUserRef) {
+        updateUserPreference({ language: lang });
+      }
     }
     
     // Apply theme
@@ -384,6 +388,11 @@
       }
       localStorage.setItem(THEME_KEY, t);
       try { if (window.Telegram?.WebApp?.setHeaderColor) window.Telegram.WebApp.setHeaderColor(t === 'light' ? '#ffffff' : '#0b0f14'); } catch {}
+      
+      // Firebase-এ থিম প্রেফারেন্স আপডেট করুন (যদি ইউজার লগ ইন করা থাকে)
+      if (window.currentUserRef) {
+        updateUserPreference({ theme: t });
+      }
     }
     
     // Initialize theme and language
@@ -549,7 +558,7 @@
 
     // ===== Imports =====
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-    import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, query, orderBy, limit, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp, collection, query, orderBy, limit, getDocs, onSnapshot, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
 
     // ===== App Init =====
     const app = initializeApp(firebaseConfig);
@@ -563,6 +572,20 @@
     // ===== Step 1: First render Telegram user data =====
     renderProfile(user, Date.now());
 
+    // ===== Firebase-এ ইউজার প্রেফারেন্স আপডেট করার ফাংশন =====
+    async function updateUserPreference(prefs) {
+      try {
+        if (!window.currentUserRef) return;
+        
+        await updateDoc(window.currentUserRef, {
+          ...prefs,
+          updatedAt: serverTimestamp()
+        });
+      } catch (error) {
+        console.error('প্রেফারেন্স আপডেট করতে সমস্যা:', error);
+      }
+    }
+
     // ===== Step 2: Then load user data from Firebase using chat ID =====
     async function loadUserDataFromFirebase(){
       if (!user || !user.id) {
@@ -574,9 +597,12 @@
       
       const uid = String(user.id);
       const uRef = doc(db, 'users', uid);
+      window.currentUserRef = uRef; // গ্লোবাল রেফারেন্স সংরক্ষণ
+      
       const snap = await getDoc(uRef);
 
       let joinedAt = Date.now();
+      let initialJoinDate = null;
 
       if (!snap.exists()) {
         // Create new user with defaults
@@ -594,7 +620,12 @@
           totalEarning: 0,
           joinDate: serverTimestamp(),
           createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
+          updatedAt: serverTimestamp(),
+          // প্রেফারেন্স সংরক্ষণ
+          preferences: {
+            theme: localStorage.getItem(THEME_KEY) || 'dark',
+            language: localStorage.getItem(LANG_KEY) || 'bn'
+          }
         };
         await setDoc(uRef, payload);
         
@@ -606,9 +637,39 @@
           totalWithdraw: 0,
           totalEarning: 0,
         });
+        
+        initialJoinDate = joinedAt;
       } else {
         const data = snap.data();
-        joinedAt = (data.joinDate?.toDate?.() ? data.joinDate.toDate().getTime() : (data.joinDate || Date.now()));
+        initialJoinDate = (data.joinDate?.toDate?.() ? data.joinDate.toDate().getTime() : (data.joinDate || Date.now()));
+        joinedAt = initialJoinDate; // প্রথম যোগদানের তারিখ সংরক্ষণ
+        
+        // Firebase থেকে প্রেফারেন্স লোড করুন
+        if (data.preferences) {
+          if (data.preferences.theme) {
+            applyTheme(data.preferences.theme);
+          }
+          if (data.preferences.language) {
+            applyLanguage(data.preferences.language);
+          }
+        }
+        
+        // টেলিগ্রামে প্রোফাইল আপডেট হলে Firebase-এ সিঙ্ক করুন
+        const needsUpdate = 
+          (data.first_name !== user.first_name) ||
+          (data.last_name !== user.last_name) ||
+          (data.username !== user.username) ||
+          (data.photo_url !== user.photo_url);
+        
+        if (needsUpdate) {
+          await updateDoc(uRef, {
+            first_name: user.first_name || '',
+            last_name: user.last_name || '',
+            username: user.username || '',
+            photo_url: user.photo_url || '',
+            updatedAt: serverTimestamp()
+          });
+        }
         
         // Update profile with data from Firebase
         renderProfile({
@@ -617,7 +678,7 @@
           last_name: data.last_name || user.last_name,
           username: data.username || user.username,
           photo_url: data.photo_url || user.photo_url
-        }, joinedAt);
+        }, initialJoinDate); // প্রথম যোগদানের তারিখ ব্যবহার
         
         // Render stats from Firebase
         renderStats({
@@ -653,6 +714,15 @@
               totalWithdraw: data.totalWithdraw || 0,
               totalEarning: data.totalEarning || 0,
             });
+            
+            // প্রোফাইল তথ্য আপডেট হলে UI-তে প্রতিফলিত করুন
+            renderProfile({
+              id: data.id || user.id,
+              first_name: data.first_name || user.first_name,
+              last_name: data.last_name || user.last_name,
+              username: data.username || user.username,
+              photo_url: data.photo_url || user.photo_url
+            }, initialJoinDate); // প্রথম যোগদানের তারিখ অপরিবর্তিত রাখুন
           }
         });
 
