@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>টেলিগ্রাম প্রোফাইল</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0088cc;
+            --secondary-color: #f1f8ff;
+            --text-color: #333;
+            --bg-color: #f9f9f9;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --status-bg: #f0f9ff;
+            --border-radius: 12px;
+            --up-color: #00c853;
+            --down-color: #ff3d00;
+        }
+
+        .dark-theme {
+            --primary-color: #0088cc;
+            --secondary-color: #1a1a2e;
+            --text-color: #f1f1f1;
+            --bg-color: #121212;
+            --card-bg: #1e1e30;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --status-bg: #1e2a3a;
+            --up-color: #00e676;
+            --down-color: #ff5252;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--text-color);
+        }
+
+        .profile-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+            margin-right: 20px;
+        }
+
+        .profile-info h2 {
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+
+        .profile-info p {
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-left: 8px;
+            color: var(--primary-color);
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 15px;
+            text-align: center;
+            animation: slideUp 0.5s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 120px;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .withdraw-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+
+        .withdraw-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .status-section {
+            background-color: var(--status-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.7s ease-in-out;
+        }
+
+        .status-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .market-status {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .market-item {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        .market-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .market-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .market-change {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .up {
+            color: var(--up-color);
+        }
+
+        .down {
+            color: var(--down-color);
+        }
+
+        .market-graph {
+            height: 40px;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .graph-bar {
+            position: absolute;
+            bottom: 0;
+            width: 4px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transform: translateX(100px);
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .market-status {
+                grid-template-columns: 1fr;
+            }
+            
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .profile-pic {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">টেলিগ্রাম প্রোফাইল</div>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </header>
+
+        <div class="profile-card">
+            <div class="profile-header">
+                <img src="https://via.placeholder.com/100" alt="Profile Picture" class="profile-pic" id="profilePic">
+                <div class="profile-info">
+                    <h2 id="fullName">নাম লোড হচ্ছে...</h2>
+                    <p>
+                        <span id="userName">ইউজারনেম লোড হচ্ছে...</span>
+                        <button class="copy-btn" onclick="copyToClipboard('userName')">
+                            <i class="far fa-copy"></i>
+                        </button>
+                    </p>
+                    <p>
+                        <span id="userId">আইডি লোড হচ্ছে...</span>
+                        <button class="copy-btn" onclick="copyToClipboard('userId')">
+                            <i class="far fa-copy"></i>
+                        </button>
+                    </p>
+                    <p id="joinDate">যোগদানের তারিখ: লোড হচ্ছে...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="balance">0.00</div>
+                <div class="stat-label">ব্যালেন্স</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="todayEarning">0.00</div>
+                <div class="stat-label">আজকের আয়</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalEarning">0.00</div>
+                <div class="stat-label">মোট আয়</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalWithdraw">0.00</div>
+                <div class="stat-label">মোট উত্তোলন</div>
+                <button class="withdraw-btn" onclick="window.open('https://example.com/withdraw', '_blank')">উত্তোলন</button>
+            </div>
+        </div>
+
+        <div class="status-section">
+            <div class="status-title">ইউজার এক্টিভিটি স্ট্যাটাস</div>
+            
+            <div class="market-status">
+                <div class="market-item">
+                    <div class="market-header">
+                        <span>ফাইল জমা</span>
+                        <span class="market-value" id="filesSubmittedValue">42</span>
+                    </div>
+                    <div class="market-change up">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+5 (12%)</span>
+                    </div>
+                    <div class="market-graph" id="filesGraph"></div>
+                </div>
+                
+                <div class="market-item">
+                    <div class="market-header">
+                        <span>ডেইলি আর্নিং</span>
+                        <span class="market-value" id="dailyEarningValue">$12.75</span>
+                    </div>
+                    <div class="market-change up">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+$2.50 (24%)</span>
+                    </div>
+                    <div class="market-graph" id="earningGraph"></div>
+                </div>
+                
+                <div class="market-item">
+                    <div class="market-header">
+                        <span>সক্রিয়তা স্কোর</span>
+                        <span class="market-value" id="activityScoreValue">78</span>
+                    </div>
+                    <div class="market-change down">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>-2 (3%)</span>
+                    </div>
+                    <div class="market-graph" id="activityGraph"></div>
+                </div>
+                
+                <div class="market-item">
+                    <div class="market-header">
+                        <span>মার্কেট ভ্যালু</span>
+                        <span class="market-value" id="marketValue">$45.60</span>
+                    </div>
+                    <div class="market-change up">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+$5.20 (13%)</span>
+                    </div>
+                    <div class="market-graph" id="marketGraph"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">কপি করা হয়েছে!</div>
+
+    <script>
+        // DOM Elements
+        const themeToggle = document.getElementById('themeToggle');
+        const notification = document.getElementById('notification');
+        
+        // Check for saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+        
+        // Theme Toggle
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            if (document.body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        });
+        
+        // Copy to Clipboard Function
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const textToCopy = element.textContent;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showNotification('কপি করা হয়েছে!');
+            }).catch(err => {
+                console.error('কপি করতে সমস্যা হয়েছে: ', err);
+            });
+        }
+        
+        // Show Notification
+        function showNotification(message) {
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Generate random graph data
+        function generateGraphData(containerId, pointCount) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            const values = [];
+            for (let i = 0; i < pointCount; i++) {
+                values.push(Math.random() * 40);
+            }
+            
+            const maxValue = Math.max(...values);
+            const containerWidth = container.offsetWidth;
+            const spacing = containerWidth / (pointCount - 1);
+            
+            values.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'graph-bar';
+                bar.style.height = `${value}px`;
+                bar.style.left = `${index * spacing}px`;
+                container.appendChild(bar);
+            });
+        }
+        
+        // Load user data from Firebase (simulated)
+        function loadUserData() {
+            // In a real app, you would fetch this from Firebase
+            const userData = {
+                photoUrl: 'https://via.placeholder.com/100/0088cc/ffffff?text=User',
+                fullName: 'আব্দুল করিম',
+                userName: 'abdulkarim',
+                userId: '123456789',
+                joinDate: '১৫ জুন, ২০২৩',
+                balance: 255.50,
+                todayEarning: 12.75,
+                totalWithdraw: 120.00,
+                totalEarning: 375.50,
+                filesSubmitted: 42,
+                dailyEarningStatus: 12.75,
+                activityScore: 78,
+                marketValue: 45.60
+            };
+            
+            // Update profile information
+            document.getElementById('profilePic').src = userData.photoUrl;
+            document.getElementById('fullName').textContent = userData.fullName;
+            document.getElementById('userName').textContent = '@' + userData.userName;
+            document.getElementById('userId').textContent = 'ID: ' + userData.userId;
+            document.getElementById('joinDate').textContent = 'যোগদানের তারিখ: ' + userData.joinDate;
+            
+            // Update financial information
+            document.getElementById('balance').textContent = userData.balance.toFixed(2);
+            document.getElementById('todayEarning').textContent = userData.todayEarning.toFixed(2);
+            document.getElementById('totalWithdraw').textContent = userData.totalWithdraw.toFixed(2);
+            document.getElementById('totalEarning').textContent = userData.totalEarning.toFixed(2);
+            
+            // Update status information
+            document.getElementById('filesSubmittedValue').textContent = userData.filesSubmitted;
+            document.getElementById('dailyEarningValue').textContent = '$' + userData.dailyEarningStatus.toFixed(2);
+            document.getElementById('activityScoreValue').textContent = userData.activityScore;
+            document.getElementById('marketValue').textContent = '$' + userData.marketValue.toFixed(2);
+            
+            // Generate market graphs
+            generateGraphData('filesGraph', 12);
+            generateGraphData('earningGraph', 12);
+            generateGraphData('activityGraph', 12);
+            generateGraphData('marketGraph', 12);
+        }
+        
+        // Initialize the page
+        window.addEventListener('load', () => {
+            loadUserData();
+        });
+        
+        // Simulate real-time updates from Firebase
+        setInterval(() => {
+            // In a real app, this would listen to Firebase changes
+            const balanceElem = document.getElementById('balance');
+            const currentBalance = parseFloat(balanceElem.textContent);
+            const newBalance = currentBalance + (Math.random() * 2 - 1);
+            balanceElem.textContent = newBalance.toFixed(2);
+            
+            const todayEarningElem = document.getElementById('todayEarning');
+            const currentEarning = parseFloat(todayEarningElem.textContent);
+            const newEarning = Math.max(0, currentEarning + (Math.random() * 0.5));
+            todayEarningElem.textContent = newEarning.toFixed(2);
+        }, 10000);
+    </script>
+</body>
+</html>
