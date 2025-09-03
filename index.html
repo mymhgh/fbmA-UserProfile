@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Profile • Telegram Mini WebApp</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js" integrity="sha512-6BTOlkauINO65nLhXhthZMtepgJSghyimIalb+crKRPhvhmsCdnIuGcVbR5/aQY2A+260iC1OPy1oCdB6pSSwQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  
   <!-- =========================
        THEME & BASE STYLES
        ========================= -->
@@ -213,14 +216,14 @@
               <div class="k" data-i18n="username">TgUN:</div>
               <div class="copy">
                 <span id="username" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
-                <button class="btn icon small" data-copy="username" title="Copy">📋</button>
+                <button class="btn icon small" data-copy="username" title="Copy"> <i class="fa-solid fa-copy"> </button>
               </div>
             </div>
             <div class="kv">
               <div class="k" data-i18n="userid">UID:</div>
               <div class="copy">
                 <span id="chatId" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
-                <button class="btn icon small" data-copy="chatId" title="Copy">📋</button>
+                <button class="btn icon small" data-copy="chatId" title="Copy"> <i class="fa-solid fa-copy"> </button>
               </div>
             </div>
             <div class="kv">
@@ -436,9 +439,9 @@
       // Mock (for local dev)
       const mock = {
         id: 999999999,
-        first_name: 'Full',
+        first_name: 'Your',
         last_name: 'Name',
-        username: 'Tg UserName',
+        username: '',
         language_code: 'bn',
         is_premium: true,
         photo_url: ''
