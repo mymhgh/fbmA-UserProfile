@@ -5,8 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Profile • Telegram Mini WebApp</title>
 
+
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js" integrity="sha512-6BTOlkauINO65nLhXhthZMtepgJSghyimIalb+crKRPhvhmsCdnIuGcVbR5/aQY2A+260iC1OPy1oCdB6pSSwQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  
+
+
+
   <!-- =========================
        THEME & BASE STYLES
        ========================= -->
@@ -190,8 +195,8 @@
     <!-- Topbar -->
     <div class="topbar">
       <div class="theme-switch">
-        <button id="themeToggle" class="btn small ghost" title="থিম পরিবর্তন করুন">🌗 Theme</button>
-        <button id="languageToggle" class="btn small ghost" title="Change language">🌐 বাংলা</button>
+        <button id="themeToggle" class="btn small ghost" title="থিম পরিবর্তন করুন"> <i class="fa-solid fa-circle-moon"></i> Theme</button>
+        <button id="languageToggle" class="btn small ghost" title="Change language"> <i class="fa-solid fa-language"></i> বাংলা</button>
       </div>
     </div>
     
@@ -216,14 +221,14 @@
               <div class="k" data-i18n="username">TgUN:</div>
               <div class="copy">
                 <span id="username" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
-                <button class="btn icon small" data-copy="username" title="Copy"> <i class="fa-solid fa-copy"> </button>
+                <button class="btn icon small" data-copy="username" title="Copy"> <i class="fa-solid fa-copy"></i> </button>
               </div>
             </div>
             <div class="kv">
               <div class="k" data-i18n="userid">UID:</div>
               <div class="copy">
                 <span id="chatId" class="kbd skeleton" style="min-width:140px; height:16px; border-radius:6px;"></span>
-                <button class="btn icon small" data-copy="chatId" title="Copy"> <i class="fa-solid fa-copy"> </button>
+                <button class="btn icon small" data-copy="chatId" title="Copy"> <i class="fa-solid fa-copy"> </i></button>
               </div>
             </div>
             <div class="kv">
@@ -301,10 +306,10 @@
     const translations = {
       'bn': {
         'name': 'নাম:',
-        'username': 'ইউএন:',
+        'username': 'ব্যবহারকারী নাম:',
         'userid': 'আইডি:',
-        'joindate': 'তারিখ:',
-        'accountOverview':'অ্যাকাউন্ট সারসংক্ষেপ',
+        'joindate': 'বট জয়েন তারিখ:',
+        'accountOverview': 'অ্যাকাউন্ট সারসংক্ষেপ',
         'balance': 'ব্যালেন্স',
         'todayEarning': 'আজকের আয়',
         'totalWithdraw': 'মোট উত্তোলন',
@@ -327,9 +332,9 @@
       },
       'en': {
         'name': 'Name:',
-        'username': 'UN:',
-        'userid': 'UID:',
-        'joindate': 'Date:',
+        'username': 'Username:',
+        'userid': 'User ID:',
+        'joindate': 'Bot Join Date:',
         'accountOverview': 'Account Overview',
         'balance': 'Balance',
         'todayEarning': 'Today Earning',
@@ -441,7 +446,7 @@
         id: 999999999,
         first_name: 'Your',
         last_name: 'Name',
-        username: '',
+        username: '' ,
         language_code: 'bn',
         is_premium: true,
         photo_url: ''
